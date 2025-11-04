@@ -290,3 +290,60 @@ footer {
     padding: 1rem 1rem;
   }
 }
+
+
+/* Lectures section */
+.lectures-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.lecture-card {
+  display: flex;
+  flex-direction: column;
+  background: #0f2a4a;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #163d6c;
+  box-shadow: 0 0 10px rgba(88,166,255,0.1);
+  transition: transform 0.2s, box-shadow 0.3s;
+  min-height: 180px;
+}
+
+.lecture-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(88,166,255,0.4);
+}
+
+.lecture-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.lecture-card h3 {
+  color: #58a6ff;
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
+  text-shadow: 0 0 5px rgba(88,166,255,0.6);
+}
+
+.lecture-card p {
+  color: #9dbbe6;
+  font-size: 0.95rem;
+  flex-grow: 1;
+  margin-bottom: 1rem;
+}
+
+.lecture-card a {
+  color: #58a6ff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  align-self: flex-start;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+
+.lecture-card a:hover {
+  color: #7dd3fc;
+  text-shadow: 0 0 8px #58a6ff;
+}
