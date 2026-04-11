@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog | Muhammed Shafi</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="blog-header">
+    <nav class="navbar">
+      <a href="blog.html" class="active">Blog</a>
+      <a href="index.html">About</a>
+      <button class="theme-toggle" type="button" aria-pressed="false">
+        Dark Theme
+      </button>
+    </nav>
+
+    <div class="blog-hero">
+      <div class="blog-hero-text">
+        <p class="blog-kicker">Lab Notes</p>
+        <h1>Field Notes from RTL, VLSI, and Embedded Systems</h1>
+        <p class="blog-subtitle">
+          Short, practical writeups on digital design, interfaces, and hardware acceleration.
+        </p>
+        <div class="blog-hero-actions">
+          <a class="blog-cta" href="#latest">Read Latest</a>
+          <a class="blog-cta ghost" href="#topics">Browse Topics</a>
+        </div>
+      </div>
+      <div class="blog-hero-panel">
+        <div class="signal-card">
+          <p class="signal-title">Current Focus</p>
+          <p class="signal-highlight">Video pipelines and timing closure</p>
+          <p class="signal-meta">Experiments · Notes · Benchmarks</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="blog-main" id="latest">
+    <section class="blog-feed">
+      <div class="blog-section-title">
+        <h2>Latest Posts</h2>
+        <p>Clear, structured breakdowns of complex hardware topics.</p>
+      </div>
+
+      <article class="blog-card featured">
+        <div class="blog-card-header">
+          <span class="chip-tag">Networking</span>
+          <span class="blog-date">April 11, 2026</span>
+        </div>
+        <h3>A Conceptual Understanding Of RDMA</h3>
+        <p>How RDMA bypasses the kernel and memory copies to enable low-latency, high-throughput remote memory access.</p>
+        <a href="rdma.html" class="blog-link">Read →</a>
+        <img
+          class="blog-thumb"
+          src="images/rdma/rdma_basic_arch.png"
+          alt="RDMA architecture diagram"
+        >
+      </article>
+
+      <div class="blog-card-grid">
+      </div>
+    </section>
+
+    <aside class="blog-sidebar" id="topics">
+      <div class="sidebar-card">
+        <h2>Topics</h2>
+        <div class="tag-grid">
+          <span class="chip-tag">RTL</span>
+          <span class="chip-tag">Interfaces</span>
+          <span class="chip-tag">Video</span>
+          <span class="chip-tag">CDC</span>
+          <span class="chip-tag">OpenROAD</span>
+          <span class="chip-tag">Bare-metal</span>
+          <span class="chip-tag">Linux</span>
+          <span class="chip-tag">Verification</span>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <h2>Series</h2>
+        <p class="series-title">Signals & Pipelines</p>
+        <p class="series-description">
+          Practical essays on streaming video, throughput, and latency management.
+        </p>
+        <a href="#" class="blog-link">See series →</a>
+      </div>
+
+      <div class="sidebar-card">
+        <h2>Reading Queue</h2>
+        <p class="queue-item">High-Speed Digital Design — Howard Johnson</p>
+        <p class="queue-item">CMOS VLSI Design — Weste & Harris</p>
+        <p class="queue-item">Writing a RISC-V CPU in Verilog</p>
+      </div>
+    </aside>
+  </main>
+
+  <section class="rtl-showcase">
+    <div class="blog-section-title">
+      <h2>Open Source RTL IP</h2>
+      <p>Reusable blocks I publish for the community, with clean interfaces and docs.</p>
+    </div>
+    <div class="rtl-grid">
+      <article class="rtl-card">
+        <div class="rtl-card-header">
+          <span class="chip-tag">UART</span>
+          <span class="rtl-status">In Progress</span>
+        </div>
+        <h3>UART-APB IP</h3>
+        <p>UART controller with APB interface for embedded systems.</p>
+        <div class="rtl-meta">Verilog · TBD LUTs</div>
+        <a href="#" class="blog-link">Coming Soon →</a>
+      </article>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 Muhammed Shafi. Built with ❤️ on GitHub Pages.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

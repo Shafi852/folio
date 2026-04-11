@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Conceptual Understanding Of RDMA | Muhammed Shafi</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <header class="blog-header">
+    <nav class="navbar">
+      <a href="blog.html">Blog</a>
+      <a href="index.html">About</a>
+      <button class="theme-toggle" type="button" aria-pressed="false">
+        Dark Theme
+      </button>
+    </nav>
+    <div class="blog-hero">
+      <div class="blog-hero-text">
+        <p class="blog-kicker">Article</p>
+        <h1>A Conceptual Understanding Of RDMA</h1>
+        <p class="blog-subtitle">
+          A systems-focused RDMA primer for engineers building SoC, FPGA, and high-speed networked designs.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="blog-main article-page">
+    <article class="blog-post">
+      <div class="blog-card-header">
+        <span class="chip-tag">Networking</span>
+        <span class="blog-date">April 11, 2026</span>
+      </div>
+
+      <section class="post-section">
+        <h2>Introduction</h2>
+        <p>
+          Remote Direct Memory Access (RDMA) is a high-speed networking technique where one device can access the memory of another device with low latency, high throughput, and minimal CPU overhead.
+          For RTL and SoC engineers, the important idea is that RDMA avoids the normal host CPU and kernel network stack by allowing the network interface to move data directly into application memory.
+        </p>
+      </section>
+
+      <section class="post-section">
+        <h2>Evolution of Data Movement</h2>
+        <p>
+          Early systems relied entirely on the CPU to move data between peripherals and memory. That CPU-driven model required the processor to read device registers and write data into memory, which wasted cycles as I/O rates increased.
+          DMA improved this by delegating memory transfers to dedicated hardware engines. The CPU only configured the transfer, while the DMA engine handled the actual movement.
+        </p>
+        <p>
+          But DMA is local to a system. When data must cross machines, traditional networking still involves the CPU, kernel, and protocol software. That means extra latency, higher CPU usage, and more memory bandwidth consumed by copies.
+        </p>
+        <figure>
+          <img src="images/rdma/older_dma_arch.png" alt="Diagram comparing legacy DMA architecture to modern data movement." />
+          <figcaption>Legacy DMA architecture compared with modern RDMA-oriented data movement.</figcaption>
+        </figure>
+      </section>
+
+      <section class="post-section">
+        <h2>Why TCP/IP Still Costs Too Much</h2>
+        <p>
+          A standard network transfer walks through multiple software layers: application, kernel, network stack, and NIC.
+          Each layer often copies data, triggers interrupts, and performs protocol processing in software. These steps are expensive at 10G, 25G, 100G, and beyond.
+        </p>
+        <p>
+          The result is a bottleneck around the host CPU, rather than the raw network or memory subsystem.
+        </p>
+        <figure>
+          <img src="images/rdma/cpu_kernal_calls_in_traditional_sys.png" alt="Diagram showing CPU/kernel calls in a traditional network stack." />
+          <figcaption>Traditional network stack data path with CPU/kernel intervention.</figcaption>
+        </figure>
+      </section>
+
+      <section class="post-section">
+        <h2>Zero-Copy and RDMA</h2>
+        <p>
+          RDMA is built around the idea of zero-copy transfer: data moves directly between application buffers and hardware without intermediate copies.
+          The sender NIC reads from application memory, and the receiver NIC writes directly into the destination application buffer.
+        </p>
+        <p>
+          This direct placement model reduces CPU involvement and lets the NIC handle the data movement in hardware.
+        </p>
+      </section>
+
+      <section class="post-section">
+        <h2>How RDMA Works</h2>
+        <p>
+          Remote Direct Memory Access allows one machine to access another machine's memory without involving the remote CPU in the actual transfer.
+          The network interface card (RNIC) is responsible for moving the data, while the host CPU typically only posts work requests and manages completion notifications.
+        </p>
+        <p>
+          In a traditional network operation, the path is:
+          Application → Kernel → Network Stack (TCP/IP) → NIC.
+          With RDMA, it becomes:
+          Application → RNIC.
+        </p>
+        <figure>
+          <img src="images/rdma/rdma_basic_arch.png" alt="RDMA architecture vs traditional TCP/IP architecture." />
+          <figcaption>RDMA data flow as a direct application-to-network interface path.</figcaption>
+        </figure>
+      </section>
+
+      <section class="post-section">
+        <h2>RDMA and PCIe</h2>
+        <p>
+          An RDMA-capable NIC sits on PCIe like any other high-speed device. When it performs a memory access, it generates PCIe transactions that traverse the root complex and memory controller to reach system RAM.
+          The NIC does not magically access RAM; the access passes through PCIe, translation, routing, and the host memory system.
+        </p>
+        <p>
+          In an SoC, that path often includes a PCIe-to-AXI bridge, an AXI interconnect, and a DDR controller. In a PC or server, proprietary interconnects may replace AXI, but the overall idea remains the same.
+        </p>
+      </section>
+
+      <section class="post-section">
+        <h2>SoC Support for RDMA</h2>
+        <p>
+          For an SoC to support RDMA, the design must allow PCIe devices to generate memory read/write transactions and translate them into the internal memory protocol.
+          This means the system needs:
+        </p>
+        <ul>
+          <li>A PCIe subsystem or controller</li>
+          <li>A PCIe-to-AXI bridge or equivalent interconnect adapter</li>
+          <li>An AXI interconnect or internal bus fabric</li>
+          <li>A DDR controller that services remote memory transactions</li>
+        </ul>
+        <p>
+          The RNIC issues PCIe reads and writes, the bridge translates those into on-chip transactions, and the memory controller services the transfers.
+        </p>
+        <div class="mermaid">
+          flowchart LR
+              A[PCIe Device<br/>DMA Engine]
+              B[PCIe TLPs<br/>MemRd / MemWr]
+              C[PCIe Controller /<br/>Root Complex]
+              D[AXI Transactions<br/>AXI Read / Write]
+              E[DDR Controller]
+              F[System RAM]
+
+              A --> B
+              B --> C
+              C --> D
+              D --> E
+              E --> F
+
+              classDef pcie fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+              classDef axi fill:#f3e5f5,stroke:#4a148c,stroke-width:2px;
+              classDef mem fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px;
+
+              class A,B,C pcie;
+              class D axi;
+              class E,F mem;
+        </div>
+      </section>
+
+      <section class="post-section">
+        <h2>Conclusion</h2>
+        <p>
+          RDMA is not just a networking feature; it is a systems-level design pattern that moves work out of the CPU and into hardware.
+          For RTL engineers, the important point is how RDMA bridges the network and memory subsystems: the NIC initiates direct memory access, and the host infrastructure routes those requests to DRAM.
+        </p>
+        <p>
+          In future blog posts, this article will be followed by deeper exploration of FPGA-based RDMA NIC IP and open-source NIC implementations.
+        </p>
+      </section>
+
+      <a href="blog.html" class="blog-link">Back to Blog →</a>
+    </article>
+  </main>
+
+  <footer>
+    <p>© 2025 Muhammed Shafi. Built with ❤️ on GitHub Pages.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
