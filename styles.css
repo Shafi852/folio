@@ -718,6 +718,125 @@ footer {
   text-decoration: underline;
 }
 
+.series-chapter {
+  margin: 1rem 0;
+}
+
+.series-chapter summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.chapter-content {
+  margin-top: 0.5rem;
+}
+
+.chapter-content h4 {
+  color: var(--accent);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.chapter-content h5 {
+  margin-top: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+
+.chapter-content ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.chapter-content figure {
+  margin: 1rem 0;
+}
+
+.chapter-content img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.chapter-content figcaption {
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.timing-calculator {
+  background: var(--surface-alt);
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.timing-calculator label {
+  display: block;
+  margin: 0.5rem 0;
+}
+
+.timing-calculator input, .timing-calculator select {
+  margin-left: 0.5rem;
+  padding: 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.timing-calculator button {
+  margin: 0.5rem 0;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.timing-calculator button:hover {
+  background: var(--accent-soft);
+}
+
+#result {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: var(--surface);
+  border-radius: 4px;
+}
+
+.resolution-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  background: var(--surface);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.resolution-table th, .resolution-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.resolution-table th {
+  background: var(--surface-alt);
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.resolution-table tr:last-child td {
+  border-bottom: none;
+}
+
+.resolution-table tr:hover {
+  background: var(--surface-alt);
+}
+
 @media (max-width: 900px) {
   .blog-hero {
     grid-template-columns: 1fr;
