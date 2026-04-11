@@ -690,6 +690,34 @@ footer {
   box-shadow: 0 8px 20px var(--shadow);
 }
 
+.blog-post .references {
+  margin: 1.5rem 0;
+  background: var(--surface-alt);
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px var(--shadow);
+}
+
+.blog-post .references summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+.blog-post .references ul {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1.5rem;
+}
+
+.blog-post .references a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.blog-post .references a:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 900px) {
   .blog-hero {
     grid-template-columns: 1fr;
