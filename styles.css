@@ -487,6 +487,31 @@ footer {
   justify-content: flex-end;
 }
 
+@media (max-width: 900px) {
+  .blog-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-hero-panel {
+    justify-content: center;   /* ✅ center horizontally */
+  }
+
+  .signal-card {
+    margin: 0 auto;            /* ✅ extra safety centering */
+  }
+}
+
+@media (max-width: 900px) {
+  .blog-hero-actions {
+    justify-content: center;   /* ✅ center buttons */
+  }
+
+  .blog-cta {
+    display: inline-block;     /* behaves like span but keeps padding */
+    text-align: center;
+  }
+}
+
 .signal-card {
   background: var(--surface);
   border: 1px solid var(--border);
