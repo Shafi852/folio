@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The "Silent" Language of Silicon: An Ethernet MAC Deep Dive | Muhammed Shafi</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <header class="blog-header">
+    <nav class="navbar">
+      <a href="index.html">Blog</a>
+      <a href="about.html">About</a>
+      <button class="theme-toggle" type="button" aria-pressed="false">
+        Dark Theme
+      </button>
+    </nav>
+    <div class="blog-hero">
+      <div class="blog-hero-text">
+        <p class="blog-kicker">Article</p>
+        <h1>The "Silent" Language of Silicon</h1>
+        <p class="blog-subtitle">
+          An RTL-focused guide to Ethernet MAC framing, error handling, and the boundary between digital logic and physical wires.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="blog-main article-page">
+    <article class="blog-post">
+      <div class="blog-card-header">
+        <span class="chip-tag">Networking</span>
+        <span class="chip-tag">RTL Design</span>
+        <span class="blog-date">May 01, 2026</span>
+      </div>
+
+      <section class="post-section">
+        <h2>Introduction</h2>
+        <p>
+          Networking often feels like magic at the software level, but for an RTL designer, it is a world of rigid rules, precise timings, and high-stakes error detection. This article explores the "how" and "why" of Ethernet MAC design through a conversational, systems-level lens.
+        </p>
+      </section>
+
+      <section class="post-section">
+        <h3>Q: We always hear about "The Network," but where does hardware actually start?</h3>
+        <p>
+          It starts at the <strong>MAC (Media Access Control)</strong>. While your software handles things like IP addresses and TCP connections, it eventually hands a "blob" of data to the hardware. The MAC is the digital brain that takes that blob and wraps it in a standardized Ethernet frame so it can survive the journey across a wire.
+        </p>
+      </section>
+
+      <section class="post-section">
+        <h3>Q: Does the hardware just send the data immediately?</h3>
+        <p>
+          Not quite. It has to clear its throat first. Every frame starts with a <strong>Preamble</strong>—seven bytes of alternating 1s and 0s. Think of it like a drummer counting down "1, 2, 3, 4" before a song starts. It gives the receiver’s clock a chance to synchronize with the transmitter before the "real" data arrives.
+        </p>
+        <div class="mermaid">
+          flowchart LR
+              A[Inter-Packet Gap] --> B[Preamble<br/>7 Bytes 0x55]
+              B --> C[SFD<br/>1 Byte 0xD5]
+              C --> D[MAC Header & Payload]
+              D --> E[FCS / CRC-32]
+              E --> A
+              
+              classDef flow fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+              class A,B,C,D,E flow;
+        </div>
+      </section>
+
+      <section class="post-section">
+  <h2>The Anatomy of an Ethernet Frame</h2>
+  <p>
+    In hardware terms, an Ethernet transmission is a continuous stream of bits. The MAC 
+    organizes these bits into a specific structure that the physical layer can interpret. 
+    Below is the standard bit-level breakdown of an IEEE 802.3 frame.
+  </p>
+
+  <figure class="blog-figure">
+    <img 
+      src="images/ethernet_mac_frame.png" 
+      alt="Diagram of Ethernet MAC Frame Structure from Preamble to FCS" 
+      style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #e2e8f0; margin: 1.5rem 0;"
+    >
+    <figcaption style="text-align: center; font-style: italic; color: #64748b; font-size: 0.9rem;">
+      Figure 1: Ethernet MAC Frame structure in chronological order (Left to Right).
+    </figcaption>
+  </figure>
+
+  <p>
+    As shown above, the data flows from left to right. The <strong>Preamble</strong> and 
+    <strong>SFD</strong> are considered physical layer overhead, followed by the 
+    Layer 2 header, the variable payload, and finally the <strong>FCS</strong> for error detection.
+  </p>
+</section>
+      <section class="post-section">
+        <h3>Q: What about the "contract" of the frame? How is it structured?</h3>
+        <p>
+          Every frame follows a strict sequence of fields that the RTL must generate or parse:
+        </p>
+        <ul>
+          <li><strong>Preamble & SFD:</strong> The "Get Ready" signal.</li>
+          <li><strong>MAC Addresses:</strong> The 6-byte "To" and "From" hardware labels.</li>
+          <li><strong>EtherType:</strong> The "What is this?" field. If the value is 1536 or higher, it identifies the protocol (e.g., 0x0800 for IPv4).</li>
+          <li><strong>The Payload:</strong> Your actual data (usually 46 to 1,500 bytes).</li>
+          <li><strong>The FCS:</strong> The "Bodyguard" (a 32-bit CRC) that ensures nothing got corrupted.</li>
+        </ul>
+      </section>
+
+      <section class="post-section">
+        <h3>Q: You mentioned 1,500 bytes. What if I want to send more?</h3>
+        <p>
+          That’s where <strong>Jumbo Frames</strong> come in. In high-performance data centers, we often bump that limit up to 9,000 bytes. It’s much more efficient because the hardware spends less time processing headers and more time moving "Goodput." However, it’s a "know your audience" situation—if you send a Jumbo Frame to an old 1,500-byte MTU switch, it will simply drop it as an oversized frame error.
+        </p>
+      </section>
+
+      <section class="post-section">
+        <h3>Q: Speaking of dropping... why does the hardware just "throw away" packets?</h3>
+        <p>
+          Hardware is ruthless. If the <strong>FCS (CRC)</strong> check fails—meaning even one bit was flipped by interference—the MAC drops the packet instantly. Ethernet at Layer 2 does not "fix" errors; it simply discards them. Another common reason is <strong>Congestion</strong>. If the internal buffers of a switch fill up, it performs a "Tail Drop," discarding new arrivals because there is simply no room left in the memory.
+        </p>
+      </section>
+
+      <section class="post-section">
+        <h3>Q: How does the PHY (Physical Layer) know when the data has actually stopped?</h3>
+        <p>
+          It doesn't "read" the length; it watches the physical signaling. 
+        </p>
+        <ul>
+          <li><strong>In 1G Links (GMII):</strong> There is a physical <code>RX_DV</code> (Data Valid) pin that the PHY pulls low when the electrical energy on the wire stops.</li>
+          <li><strong>In 10G+ Links (XGMII):</strong> The wire is never "silent," so we use special <strong>Terminate (/T/)</strong> control characters embedded in the bitstream to say, "That's all, folks!"</li>
+        </ul>
+      </section>
+
+      <section class="post-section">
+        <h3>Q: Any final "Pro-Tips" for someone designing this in RTL?</h3>
+        <p>
+          Always remember the <strong>"Endian Trap"</strong>! Ethernet is Big-Endian for bytes but Little-Endian for bits. You send the most significant byte first, but inside that byte, you send the <strong>least significant bit</strong> first. If you get your bit-ordering wrong in your CRC generator, your hardware will speak a language no one else understands.
+        </p>
+      </section>
+
+      <section class="post-section">
+        <h2>The Physical Bridge: GMII, RGMII, and XGMII</h2>
+        <p>
+          While the Ethernet frame is the logical contract, these interfaces are the electrical contract. They define how the MAC "talks" to the PHY. As speeds increased, the industry had to find ways to send more data using fewer pins.
+        </p>
+        
+        <h3>Q: Do all Ethernet interfaces speak the same "physical" language?</h3>
+        <p>
+          No, and this is where RTL design becomes a game of pin-efficiency and timing closure:
+        </p>
+        <ul>
+          <li><strong>GMII (Gigabit Media Independent Interface):</strong> The classic 1Gbps interface. It uses an 8-bit wide data bus at 125MHz. It’s simple to implement but "pin-hungry," requiring about 22-24 pins per port.</li>
+          <li><strong>RGMII (Reduced GMII):</strong> The modern workhorse for 1Gbps. It uses <strong>DDR (Double Data Rate)</strong> signaling to send 4 bits on the rising edge and 4 bits on the falling edge of a 125MHz clock. This cuts the pin count in half (to ~12 pins).</li>
+          <li><strong>XGMII (10-Gigabit MII):</strong> Designed for 10Gbps. It typically utilizes a 32-bit or 64-bit wide data bus. Unlike the 1G variants, XGMII moves away from dedicated "Valid" pins and instead uses special <strong>Control Bits</strong> for every byte to signal starts, ends, and idles.</li>
+        </ul>
+      </section>
+
+      <section class="post-section">
+        <h3>Q: As an RTL designer, which one is the "trickiest" to implement?</h3>
+        <p>
+          <strong>RGMII</strong> is notorious for timing headaches. Because you are sampling data on both edges of a 125MHz clock, your "data eye" is only 4ns wide. 
+        </p>
+        <p>
+          The standard requires the clock edge to arrive exactly in the middle of the data window (a 2ns skew). If the hardware doesn't provide this delay, you must implement it in RTL using a <strong>PLL</strong> or <strong>IDELAY</strong> primitives. If your timing constraints are off by even a few hundred picoseconds, the MAC will report constant CRC errors.
+        </p>
+      </section>
+
+      <section class="post-section">
+  <h2>The RGMII Timing Masterclass</h2>
+  <p>
+    RGMII is a "Source-Synchronous" interface, meaning the clock and data signals are sent simultaneously. This creates a significant challenge for the receiver: how do you sample data if the clock edge arrives exactly when the data is transitioning?
+  </p>
+  
+  <h3>The 2ns Skew</h3>
+  <p>
+    To meet <strong>Setup and Hold</strong> times, a 1.5ns to 2ns delay must be introduced to the clock. In older designs, this was done physically by lengthening the copper traces on the PCB. Modern designs use <strong>RGMII-ID (Internal Delay)</strong>, where the delay is implemented inside the silicon using a PLL or delay-line primitives.
+  </p>
+
+  <h3>Control Signal Multiplexing</h3>
+  <p>
+    RGMII saves pins by multiplexing control signals using XOR logic on the <strong>RX_CTL</strong> and <strong>TX_CTL</strong> pins:
+  </p>
+  <ul>
+    <li><strong>Rising Edge:</strong> Transmits the <i>Enable/Valid</i> signal (TX_EN / RX_DV).</li>
+    <li><strong>Falling Edge:</strong> Transmits an <i>XOR</i> of the Enable and Error signals (e.g., RX_DV ^ RX_ER).</li>
+  </ul>
+  <p>
+    This allows the MAC to detect not just that data is arriving, but also if the PHY has detected a medium-level error, all without needing an extra pin.
+  </p>
+</section>
+
+
+
+      <section class="post-section">
+        <h2>Conclusion</h2>
+        <p>
+          Designing an Ethernet MAC is about more than just moving bits; it's about adhering to a legacy of compatibility while pushing the limits of high-speed throughput. Understanding these fundamental Q&As is the first step toward mastering the Big Three of silicon networking: Ethernet, PCIe, and DDR.
+        </p>
+      </section>
+
+      <details class="references">
+        <summary>References</summary>
+        <ul>
+          <li><a href="https://ieeexplore.ieee.org/document/8457469" target="_blank">IEEE 802.3-2018 Standard for Ethernet</a></li>
+          <li><a href="#" target="_blank">Ethernet II vs IEEE 802.3 Framing - Network Encyclopedia</a></li>
+        </ul>
+      </details>
+
+      <a href="index.html" class="blog-link">Back to Blog →</a>
+    </article>
+  </main>
+
+  <footer>
+    <p>© 2026 Muhammed Shafi. Built with ❤️ for the RTL Community.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
